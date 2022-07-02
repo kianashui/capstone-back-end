@@ -106,20 +106,13 @@ def validate_id(id):
 # def retrieve_object(id, Model):
 
 
+
 @trip_bp.route("", methods=["GET"])
 def get_trips():
     response_body = []
 
     for trip in trips:
-        response_body.append(
-            {
-                "id": trip.id,
-                "name": trip.name,
-                "start_date": trip.start_date,
-                "end_date": trip.end_date,
-                "itinerary_entries": trip.itinerary_entries
-            }
-        )
+        response_body.append(trip.create_response_body())
 
     return jsonify(response_body), 200
 
@@ -130,15 +123,7 @@ def get_one_trip(trip_id):
 
     for trip in trips:
         if trip.id == trip_id:
-            response_body.append(
-                {
-                    "id": trip.id,
-                    "name": trip.name,
-                    "start_date": trip.start_date,
-                    "end_date": trip.end_date,
-                    "itinerary_entries": trip.itinerary_entries
-                }
-            )
+            response_body.append(trip.create_response_body())
     
     if not response_body:
         return abort(make_response({"error": f"Trip with id {trip_id} not found."}, 404))
