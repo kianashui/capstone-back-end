@@ -7,7 +7,8 @@ import dns #needed to use mongodb+srv:// URIs
 
 load_dotenv()
 client = pymongo.MongoClient(os.environ.get("MONGODB_CONNECTION_STRING"))
-db = client.test
+db = client.trip_planner
+print(db.list_collection_names())
 
 def create_app(test_config=None):
     app = Flask(__name__)
