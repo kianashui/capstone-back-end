@@ -74,13 +74,13 @@ def create_trip_response_body(trip):
         "_id": str(trip["_id"])
     }
 
-def retrieve_object(id, Model):
-    if Model == Trip:
-        items = db["trips"]
+# def retrieve_object(id, Model):
+#     if Model == Trip:
+#         items = db["trips"]
 
-    item = items.find_one({"_id": ObjectId(id)})
+#     item = items.find_one({"_id": ObjectId(id)})
 
-    return item
+#     return item
 
 @trip_bp.route("", methods=["GET"])
 def get_trips():
@@ -97,8 +97,8 @@ def get_trip_by_id(trip_id):
     
     response_body = []
     
-    # trip = trips.find_one({"_id": ObjectId(trip_id)})
-    trip = retrieve_object(trip_id, Trip)
+    trip = db["trips"].find_one({"_id": ObjectId(trip_id)})
+    # trip = retrieve_object(trip_id, Trip)
     
     if not trip:
         return abort(make_response({"error": f"Trip with id {trip_id} not found."}, 404))
@@ -119,3 +119,12 @@ def add_trip():
     trip = trip.to_dict_insert()
     db["trips"].insert_one(trip)
     return jsonify(create_trip_response_body(trip)), 201
+
+@trip_bp.route("/<trip_id>", methods=["DELETE"])
+def delete_trip(trip_id):
+    trip = db["trips"].find_one_and_delete({"_id": ObjectId(trip_id)})
+
+    if not trip:
+        return abort(make_response({"error": f"Trip with id {trip_id} not found."}, 404))
+    
+    return jsonify({"message": f"Trip with id {trip_id} successfully deleted."}), 200
