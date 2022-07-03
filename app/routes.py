@@ -86,10 +86,8 @@ def retrieve_object(id, Model):
 def get_trips():
     response_body = []
 
-    for trip in trips.find():
+    for trip in db["trips"].find():
         response_body.append(create_trip_response_body(trip))
-
-    print(response_body)
 
     return jsonify(response_body), 200
 
