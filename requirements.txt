@@ -34,3 +34,9 @@ six==1.15.0
 toml==0.10.2
 urllib3==1.26.4
 Werkzeug==1.0.1
+
+Flask-WTF==1.0.1
+WTForms==3.0.1
+email-validator==1.2.1
+flask-mongoengine==1.0.0
+idna==3.3

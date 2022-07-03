@@ -1,5 +1,6 @@
 from bson import ObjectId
 from mongoengine import Document, ListField, StringField, DateField, ObjectIdField
+from app import db
 
 class Trip(Document):
     id = ObjectIdField(default=ObjectId, primary_key=True)
@@ -11,7 +12,6 @@ class Trip(Document):
     
     def to_dict_insert(self):
         return {
-            # "_id": self._id,
             "name": self.name,
             "start_date": self.start_date,
             "end_date": self.end_date,
@@ -20,12 +20,38 @@ class Trip(Document):
     
     def to_dict_with_object_id(self):
         return {
+            "_id": str(self["_id"]),
             "name": self["name"],
             "start_date": self["start_date"],
             "end_date": self["end_date"],
-            "itinerary_entries": self["itinerary_entries"],
-            "_id": str(self["_id"])
+            "itinerary_entries": self["itinerary_entries"]
         }
+
+# class Trip(Document):
+#     id = ObjectIdField(default=ObjectId, primary_key=True)
+#     name = StringField(required=True, max_length=50)
+#     start_date = DateField(required=True)
+#     end_date = DateField(required=True)
+#     itinerary_entries = ListField(default=[])
+#     meta = {"collection": "trips", "ordering": ["-start_date"]}
+    
+#     def to_dict_insert(self):
+#         return {
+#             # "_id": self._id,
+#             "name": self.name,
+#             "start_date": self.start_date,
+#             "end_date": self.end_date,
+#             "itinerary_entries": self.itinerary_entries
+#         }
+    
+#     def to_dict_with_object_id(self):
+#         return {
+#             "name": self["name"],
+#             "start_date": self["start_date"],
+#             "end_date": self["end_date"],
+#             "itinerary_entries": self["itinerary_entries"],
+#             "_id": str(self["_id"])
+#         }
     # def __init__(self, id, name, start_date, end_date, itinerary_entries):
     #     self.id = id
     #     self.name = name
