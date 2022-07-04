@@ -85,10 +85,12 @@ def create_trip_response_body(trip):
 @trip_bp.route("", methods=["GET"])
 def get_trips():
     response_body = []
-
-    for trip in db["trips"].find():
-        response_body.append(create_trip_response_body(trip))
-
+    try:
+        for trip in db["trips"].find():
+            response_body.append(create_trip_response_body(trip))
+    except:
+        return abort(make_response({"error": "Could not execute find method with database"}))
+        
     return jsonify(response_body), 200
 
 @trip_bp.route("/<trip_id>", methods=["GET"])
@@ -97,7 +99,10 @@ def get_trip_by_id(trip_id):
     
     response_body = []
     
-    trip = db["trips"].find_one({"_id": ObjectId(trip_id)})
+    try:
+        trip = db["trips"].find_one({"_id": ObjectId(trip_id)})
+    except:
+        return abort(make_response({"error": "Could not execute find_one method with database"}))
     # trip = retrieve_object(trip_id, Trip)
     
     if not trip:
