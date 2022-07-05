@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 import pymongo
 import dns #needed to use mongodb+srv:// URIs
 from pymongo import MongoClient
+from flask_cors import CORS
 # from flask_mongoengine import MongoEngine
 
 load_dotenv()
@@ -17,5 +18,7 @@ def create_app(test_config=None):
 
     from .routes import trip_bp
     app.register_blueprint(trip_bp)
-
+    
+    CORS(app)
+    
     return app
