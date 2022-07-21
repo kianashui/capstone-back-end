@@ -46,8 +46,10 @@ from bson.objectid import ObjectId
 #     print(doc)
 #     print(doc["_id"])
 
+# BLUEPRINTS
 trip_bp = Blueprint("trip_bp", __name__, url_prefix="/trips")
 
+# HELPER FUNCTIONS
 def validate_id(id):
     try:
         id = str(id)
@@ -82,6 +84,7 @@ def create_trip_response_body(trip):
 
 #     return item
 
+# TRIP ROUTES
 @trip_bp.route("", methods=["GET"])
 def get_trips():
     response_body = []
