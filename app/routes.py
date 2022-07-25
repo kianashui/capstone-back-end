@@ -88,8 +88,11 @@ def create_trip_response_body(trip):
 @trip_bp.route("", methods=["GET"])
 def get_trips():
     response_body = []
+    
+    trips = db["trips"].find().sort("start_date")
+
     try:
-        for trip in db["trips"].find():
+        for trip in trips:
             response_body.append(create_trip_response_body(trip))
     except:
         return abort(make_response({"error": "Could not execute find method with database"}))
