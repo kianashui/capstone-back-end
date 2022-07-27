@@ -4,10 +4,10 @@ from app import db
 
 class Trip(Document):
     id = ObjectIdField(default=ObjectId, primary_key=True)
-    name = StringField(required=True, max_length=50)
-    start_date = DateField(required=True)
-    end_date = DateField(required=True)
-    itinerary_entries = ListField(default=[])
+    name = StringField(required=True, max_length=50, db_field="name")
+    start_date = DateField(required=True, db_field="start_date")
+    end_date = DateField(required=True, db_field="end_date")
+    itinerary_entries = ListField(default=[], db_field="itinerary_entries")
     meta = {"collection": "trips", "ordering": ["-start_date"]}
     
     def to_dict_insert(self):

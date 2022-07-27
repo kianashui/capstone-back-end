@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, make_response, abort, request
+from app.models.ItineraryEntry import ItineraryEntry
 from app.models.Trip import Trip
 from app import db
 from bson.objectid import ObjectId
@@ -63,8 +64,8 @@ def create_trip_response_body(trip):
     for entry in trip["itinerary_entries"]:
         itinerary_entries.append(
             {
-                "activity_type": entry["activity_type"],
-                "name": entry["name"]
+                "name": entry["name"],
+                "activity_type": entry["activity_type"]
             }
         )
 
@@ -133,9 +134,68 @@ def add_trip():
 
 @trip_bp.route("/<trip_id>", methods=["DELETE"])
 def delete_trip(trip_id):
+    # trip_id = validate_id(trip_id)
     trip = db["trips"].find_one_and_delete({"_id": ObjectId(trip_id)})
 
     if not trip:
         return abort(make_response({"error": f"Trip with id {trip_id} not found."}, 404))
     
     return jsonify({"message": f"Trip with id {trip_id} successfully deleted."}), 200
+
+def generate_set_to_update_document(field: str, changes: dict) -> dict:
+    new_set = {}
+    for change in changes.keys():
+        new_set[f"{field}.$.{change}"] = changes[change]
+    return new_set
+
+@trip_bp.route("/<trip_id>", methods=["PUT"])
+def update_trip(trip_id):
+    trip_id = validate_id(trip_id)
+    request_body = request.get_json()
+
+    if "name" not in request_body:
+        return abort(make_response({"error": f"Trip info must include name."}, 400))
+    elif "start_date" not in request_body:
+        return abort(make_response({"error": f"Trip info must include start_date."}, 400))
+    elif "end_date" not in request_body:
+        return abort(make_response({"error": f"Trip info must include end_date."}, 400))
+    elif "itinerary_entries" not in request_body:
+        return abort(make_response({"error": f"Trip info must include itinerary_entries."}, 400))
+    
+    trip = db["trips"].find_one_and_replace({"_id": ObjectId(trip_id)}, request_body)
+
+    if not trip:
+        return abort(make_response({"error": f"Trip with id {trip_id} not found."}, 404))
+    
+    return jsonify({"message": f"Trip with id {trip_id} successfully updated."}), 200
+
+# @trip_bp.route("/<trip_id>", methods=["PATCH"])
+# def update_trip_with_itinerary_entry(trip_id):
+#     trip_id = validate_id(trip_id)
+#     request_body = request.get_json()
+    
+#     itinerary_entry = ItineraryEntry(
+#         name=request_body["name"], 
+#         start_time=request_body["start_time"], 
+#         end_time=request_body["end_time"],
+#         activity_type=request_body["activity_type"],
+#         price=request_body["price"],
+#         location=request_body["location"],
+#         trip_id=trip_id
+#     )
+
+#     itinerary_entry = itinerary_entry.to_dict()
+#     changes = generate_set_to_update_document("itinerary_entries", itinerary_entry)
+
+#     try:
+#         # trip = db["trips"].find_one_and_update({"_id": ObjectId(trip_id)}, {'$set': changes})
+#         trip = db["trips"].update_one({"_id": ObjectId(trip_id)}, {'$set': changes})
+#     except:
+#         return abort(make_response({"error": "Could not execute update_one method with database"}))
+    
+#     if not trip:
+#         return abort(make_response({"error": f"Trip with id {trip_id} not found."}, 404)) 
+    
+#     response_body = []
+#     response_body.append(create_trip_response_body(trip))
+#     return jsonify(response_body), 200
