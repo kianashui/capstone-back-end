@@ -107,14 +107,14 @@ def create_itinerary_entry_response_body(itin_entries):
 @trip_bp.route("", methods=["GET"])
 def get_trips():
     response_body = []
-    
-    trips = db["trips"].find().sort("start_date")
 
     try:
-        for trip in trips:
-            response_body.append(create_trip_response_body(trip))
+        trips = db["trips"].find().sort("start_date")
     except:
         return abort(make_response({"error": "Could not execute find method with database"}))
+    
+    for trip in trips:
+        response_body.append(create_trip_response_body(trip))
         
     return jsonify(response_body), 200
 
