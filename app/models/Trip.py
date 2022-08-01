@@ -1,6 +1,7 @@
 from bson import ObjectId
 from mongoengine import Document, ListField, StringField, DateField, ObjectIdField
 from app import db
+import datetime
 
 class Trip(Document):
     id = ObjectIdField(default=ObjectId, primary_key=True)
@@ -11,6 +12,16 @@ class Trip(Document):
     meta = {"collection": "trips", "ordering": ["-start_date"]}
     
     def to_dict_insert(self):
+        start_date = self.start_date
+        print(start_date)
+        start_year = int(start_date[0:4])
+        start_month = int(start_date[5:7])
+        start_day = int(start_date[8:10])
+        print(start_date)
+        print(start_year)
+        print(start_month)
+        print(start_day)
+        self.start_date = datetime.datetime(start_year, start_month, start_day)
         return {
             "name": self.name,
             "start_date": self.start_date,
