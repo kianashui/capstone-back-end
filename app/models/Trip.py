@@ -12,16 +12,19 @@ class Trip(Document):
     meta = {"collection": "trips", "ordering": ["-start_date"]}
     
     def to_dict_insert(self):
+        # convert start and end dates to date objects
         start_date = self.start_date
-        print(start_date)
         start_year = int(start_date[0:4])
         start_month = int(start_date[5:7])
         start_day = int(start_date[8:10])
-        print(start_date)
-        print(start_year)
-        print(start_month)
-        print(start_day)
         self.start_date = datetime.datetime(start_year, start_month, start_day)
+
+        end_date = self.end_date
+        end_year = int(end_date[0:4])
+        end_month = int(end_date[5:7])
+        end_day = int(end_date[8:10])
+        self.end_date = datetime.datetime(end_year, end_month, end_day)
+        
         return {
             "name": self.name,
             "start_date": self.start_date,
