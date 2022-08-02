@@ -112,7 +112,12 @@ def add_trip():
         return abort(make_response({"error": f"Trip info must include name, start_date, and end_date."}, 400))
 
     trip = trip.to_dict_insert()
-    db["trips"].insert_one(trip)
+
+    try:
+        db["trips"].insert_one(trip)    
+    except:
+        return abort(make_response({"error": f"Could not execute insert_one method with database."}, 400))
+    
     return jsonify(create_trip_response_body(trip)), 201
 
 @trip_bp.route("/<trip_id>", methods=["DELETE"])
@@ -133,17 +138,23 @@ def update_trip(trip_id):
     trip_id = validate_id(trip_id)
     request_body = request.get_json()
 
-    if "name" not in request_body:
-        return abort(make_response({"error": f"Trip info must include name."}, 400))
-    elif "start_date" not in request_body:
-        return abort(make_response({"error": f"Trip info must include start_date."}, 400))
-    elif "end_date" not in request_body:
-        return abort(make_response({"error": f"Trip info must include end_date."}, 400))
-    elif "itinerary_entries" not in request_body:
-        return abort(make_response({"error": f"Trip info must include itinerary_entries."}, 400))
+    try:
+        trip = Trip(
+                name=request_body["name"], 
+                start_date=request_body["start_date"], 
+                end_date=request_body["end_date"],
+                itinerary_entries=request_body["itinerary_entries"]
+            )
+    except KeyError:
+        return abort(make_response({"error": f"Trip info must include name, start_date, end_date, and itinerary_entries."}, 400))
 
-    trip = db["trips"].find_one_and_replace({"_id": ObjectId(trip_id)}, request_body)
+    trip = trip.to_dict_insert()
 
+    try:
+        trip = db["trips"].find_one_and_replace({"_id": ObjectId(trip_id)}, trip)
+    except:
+        return abort(make_response({"error": f"Could not execute find_one_and_replace method with database."}, 400))
+        
     if not trip:
         return abort(make_response({"error": f"Trip with id {trip_id} not found."}, 404))
     
