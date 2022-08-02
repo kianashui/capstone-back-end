@@ -3,55 +3,19 @@ from app.models.ItineraryEntry import ItineraryEntry
 from app.models.Trip import Trip
 from app import db
 from bson.objectid import ObjectId
+from pymongo import ReturnDocument
 
-# sf_itinerary_entries = [
-#     {
-#         "activity_type": "Food",
-#         "name": "Bouchon Bistro",
-#         "location": "Napa, CA",
-#         "price": 50.50,
-#         "start_time": "1:00 PM",
-#         "end_time": "2:00 PM"
-#     },
-#     {
-#         "activity_type": "Accommodations",
-#         "name": "Andaz Hyatt Napa",
-#         "location": "Napa, CA",
-#         "price": 0,
-#         "start_time": "2:00 PM",
-#         "end_time": "3:00 PM"
-#     }
-# ]
-
-# chile_itinerary_entries = [
-#     {
-#         "activity_type": "Flight",
-#         "name": "LAX-LIM flight",
-#         "location": "Los Angeles, CA",
-#         "price": 105,
-#         "start_time": "8:00 PM",
-#         "end_time": "9:00 PM"
-#     },
-#     {
-#         "activity_type": "Flight",
-#         "name": "LIM-SCL flight",
-#         "location": "Lima, Peru",
-#         "price": 0,
-#         "start_time": "6:00 AM",
-#         "end_time": "9:00 AM"
-#     }
-# ]
 # collection = db.trips
 # print(db.list_collection_names())
 # for doc in collection.find():
 #     print(doc)
 #     print(doc["_id"])
 
-# BLUEPRINTS
+# ----------------------------------BLUEPRINTS----------------------------------
 trip_bp = Blueprint("trip_bp", __name__, url_prefix="/trips")
 itinerary_entry_bp = Blueprint("itinerary_entry_bp", __name__, url_prefix="/itinerary_entries")
 
-# HELPER FUNCTIONS
+# ----------------------------------HELPER FUNCTIONS----------------------------------
 def validate_id(id):
     try:
         id = str(id)
@@ -88,7 +52,6 @@ def create_itinerary_entry_response_body(itin_entries):
         )
     return itinerary_entries
 
-
 # def generate_set_to_update_document(field: str, changes: dict) -> dict:
 #     new_set = {}
 #     for change in changes.keys():
@@ -103,7 +66,7 @@ def create_itinerary_entry_response_body(itin_entries):
 
 #     return item
 
-# TRIP ROUTES
+# ----------------------------------TRIP ROUTES----------------------------------
 @trip_bp.route("", methods=["GET"])
 def get_trips():
     response_body = []
@@ -186,6 +149,8 @@ def update_trip(trip_id):
     
     return jsonify({"message": f"Trip with id {trip_id} successfully updated."}), 200
 
+
+# ----------------------------------ITINERARY ENTRY ROUTES----------------------------------
 @itinerary_entry_bp.route("/<trip_id>",methods=["GET"])
 def get_itinerary_entries_for_one_trip(trip_id):
     trip_id = validate_id(trip_id)
@@ -222,30 +187,14 @@ def add_itinerary_entry_to_trip(trip_id):
         return abort(make_response({"error": f"Itinerary entry must include name, start_time, end_time, activity_type, price, and location."}, 400))
 
     try:
-        trip = db["trips"].find_one({"_id": ObjectId(trip_id)})
+        trip = db["trips"].find_one_and_update({"_id": ObjectId(trip_id)},{"$addToSet": {"itinerary_entries": itinerary_entry.to_dict()}},return_document=ReturnDocument.AFTER)
     except:
-        return abort(make_response({"error": "Could not execute find_one method with database"}))
-    
+        return abort(make_response({"error": "Could not execute find_one_and_update method with database"}), 400)
+
     if not trip:
         return abort(make_response({"error": f"Trip with id {trip_id} not found."}, 404))
     
-    # itinerary_entry = itinerary_entry.to_dict()
-    # try:
-    #     trip = db["trips"].update_one({"_id": ObjectId(trip_id)},{"$addToSet": {"itinerary_entries": itinerary_entry}},upsert=True)
-    # except:
-    #     return abort(make_response({"error": "Could not execute update_one method with database"}))
-    # response_body = create_itinerary_entry_response_body(trip["itinerary_entries"])
-    # return jsonify(response_body), 201
-    trip["itinerary_entries"].append(itinerary_entry)
     response_body = create_itinerary_entry_response_body(trip["itinerary_entries"])
-
-    try:
-        trip = db["trips"].update_one({"_id": ObjectId(trip_id)},{"$set": {"itinerary_entries": response_body}},upsert=True)
-    except:
-        return abort(make_response({"error": "Could not execute update_one method with database"}))
-    
-    if trip.acknowledged == False:
-        return abort(make_response({"error": "Could not execute update_one method with database"}))
 
     return jsonify(response_body), 201
 

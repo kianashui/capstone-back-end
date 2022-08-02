@@ -22,7 +22,7 @@ class ItineraryEntry(Document):
             "start_time": self.start_time,
             "end_time": self.end_time,
             "activity_type": self.activity_type,
-            "price": self.price,
+            "price": str(self.price),
             "location": self.location
         }
     
