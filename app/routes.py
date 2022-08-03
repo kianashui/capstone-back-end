@@ -47,7 +47,8 @@ def create_itinerary_entry_response_body(itin_entries):
                 "end_time": entry["end_time"],
                 "activity_type": entry["activity_type"],
                 "price": str(entry["price"]),
-                "location": entry["location"]
+                "location": entry["location"],
+                "notes": entry["notes"]
             }
         )
     return itinerary_entries
@@ -154,7 +155,7 @@ def update_trip(trip_id):
         trip = db["trips"].find_one_and_replace({"_id": ObjectId(trip_id)}, trip)
     except:
         return abort(make_response({"error": f"Could not execute find_one_and_replace method with database."}, 400))
-        
+
     if not trip:
         return abort(make_response({"error": f"Trip with id {trip_id} not found."}, 404))
     
@@ -192,10 +193,11 @@ def add_itinerary_entry_to_trip(trip_id):
             activity_type=request_body["activity_type"],
             price=request_body["price"],
             location=request_body["location"],
+            notes=request_body["notes"],
             trip_id=trip_id
         )
     except KeyError:
-        return abort(make_response({"error": f"Itinerary entry must include name, start_time, end_time, activity_type, price, and location."}, 400))
+        return abort(make_response({"error": f"Itinerary entry must include name, start_time, end_time, activity_type, price, location, and notes."}, 400))
 
     try:
         trip = db["trips"].find_one_and_update({"_id": ObjectId(trip_id)},{"$addToSet": {"itinerary_entries": itinerary_entry.to_dict()}},return_document=ReturnDocument.AFTER)
