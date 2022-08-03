@@ -200,7 +200,7 @@ def add_itinerary_entry_to_trip(trip_id):
         return abort(make_response({"error": f"Itinerary entry must include name, start_time, end_time, activity_type, price, location, and notes."}, 400))
 
     try:
-        trip = db["trips"].find_one_and_update({"_id": ObjectId(trip_id)},{"$addToSet": {"itinerary_entries": itinerary_entry.to_dict()}},return_document=ReturnDocument.AFTER)
+        trip = db["trips"].find_one_and_update({"_id": ObjectId(trip_id)},{"$addToSet": {"itinerary_entries": itinerary_entry.to_dict_insert()}},return_document=ReturnDocument.AFTER)
     except:
         return abort(make_response({"error": "Could not execute find_one_and_update method with database"}), 400)
 

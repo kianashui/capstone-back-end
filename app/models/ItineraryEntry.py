@@ -2,6 +2,7 @@ from bson import ObjectId
 from mongoengine import Document, StringField, DateField, ObjectIdField, DecimalField, ReferenceField
 from app import db
 from app.models.Trip import Trip
+import datetime
 
 ACTIVITY_TYPES = ('Flight', 'Accommodations', 'Food', 'Activity', 'Miscellaneous')
 
@@ -28,27 +29,32 @@ class ItineraryEntry(Document):
             "notes": self.notes
         }
     
-    # def to_dict_insert(self):
-    #     # start_date = self.start_date
-    #     # start_year = int(start_date[0:4])
-    #     # start_month = int(start_date[5:7])
-    #     # start_day = int(start_date[8:10])
-    #     # self.start_date = datetime.datetime(start_year, start_month, start_day)
+    def to_dict_insert(self):
+        start_time = self.start_time
+        start_year = int(start_time[0:4])
+        start_month = int(start_time[5:7])
+        start_day = int(start_time[8:10])
+        start_hour = int(start_time[11:13])
+        start_minute = int(start_time[14:16])
+        self.start_time = datetime.datetime(start_year, start_month, start_day, start_hour, start_minute)
 
-    #     # end_date = self.end_date
-    #     # end_year = int(end_date[0:4])
-    #     # end_month = int(end_date[5:7])
-    #     # end_day = int(end_date[8:10])
-    #     # self.end_date = datetime.datetime(end_year, end_month, end_day)
-    #     return {
-    #         "name": self.name,
-    #         "start_time": self.start_time,
-    #         "end_time": self.end_time,
-    #         "activity_type": self.activity_type,
-    #         "price": str(self.price),
-    #         "location": self.location,
-    #         "notes": self.notes
-    #     }
+        end_time = self.end_time
+        end_year = int(end_time[0:4])
+        end_month = int(end_time[5:7])
+        end_day = int(end_time[8:10])
+        end_hour = int(end_time[11:13])
+        end_minute = int(end_time[14:16])
+        self.end_time = datetime.datetime(end_year, end_month, end_day, end_hour, end_minute)
+
+        return {
+            "name": self.name,
+            "start_time": self.start_time,
+            "end_time": self.end_time,
+            "activity_type": self.activity_type,
+            "price": str(self.price),
+            "location": self.location,
+            "notes": self.notes
+        }
     
     def to_dict_with_object_id(self):
         return {
