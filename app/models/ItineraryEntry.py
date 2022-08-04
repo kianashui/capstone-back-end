@@ -30,21 +30,8 @@ class ItineraryEntry(Document):
         }
     
     def to_dict_insert(self):
-        start_time = self.start_time
-        start_year = int(start_time[0:4])
-        start_month = int(start_time[5:7])
-        start_day = int(start_time[8:10])
-        start_hour = int(start_time[11:13])
-        start_minute = int(start_time[14:16])
-        self.start_time = datetime.datetime(start_year, start_month, start_day, start_hour, start_minute)
-
-        end_time = self.end_time
-        end_year = int(end_time[0:4])
-        end_month = int(end_time[5:7])
-        end_day = int(end_time[8:10])
-        end_hour = int(end_time[11:13])
-        end_minute = int(end_time[14:16])
-        self.end_time = datetime.datetime(end_year, end_month, end_day, end_hour, end_minute)
+        self.start_time = datetime.datetime.fromisoformat(self.start_time)
+        self.end_time = datetime.datetime.fromisoformat(self.end_time)
 
         return {
             "name": self.name,
