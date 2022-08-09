@@ -9,6 +9,7 @@ class Trip(Document):
     start_date = DateField(required=True, db_field="start_date")
     end_date = DateField(required=True, db_field="end_date")
     itinerary_entries = ListField(default=[], db_field="itinerary_entries")
+    user_id = StringField(required=True, db_field="user_id")
     meta = {"collection": "trips", "ordering": ["-start_date"]}
     
     def to_dict_insert(self):
@@ -20,7 +21,8 @@ class Trip(Document):
             "name": self.name,
             "start_date": self.start_date,
             "end_date": self.end_date,
-            "itinerary_entries": self.itinerary_entries
+            "itinerary_entries": self.itinerary_entries,
+            "user_id": self.user_id
         }
     
     def to_dict_with_object_id(self):

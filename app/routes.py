@@ -87,10 +87,11 @@ def to_dict_insert(entry):
 # ----------------------------------TRIP ROUTES----------------------------------
 @trip_bp.route("", methods=["GET"])
 def get_trips():
-    response_body = []
+    request_header_user_id = request.headers["user_id"]
 
+    response_body = []
     try:
-        trips = db["trips"].find().sort("start_date")
+        trips = db["trips"].find({"user_id": request_header_user_id}).sort("start_date")
     except:
         return abort(make_response({"error": "Could not execute find method with database"}))
     
@@ -102,9 +103,10 @@ def get_trips():
 @trip_bp.route("/<trip_id>", methods=["GET"])
 def get_trip_by_id(trip_id):
     trip_id = validate_id(trip_id)
+    request_header_user_id = request.headers["user_id"]
     
     try:
-        trip = db["trips"].find_one({"_id": ObjectId(trip_id)})
+        trip = db["trips"].find_one({"_id": ObjectId(trip_id), "user_id": request_header_user_id})
     except:
         return abort(make_response({"error": "Could not execute find_one method with database"}))
     
@@ -119,12 +121,14 @@ def get_trip_by_id(trip_id):
 @trip_bp.route("", methods=["POST"])
 def add_trip():
     request_body = request.get_json()
+    request_header_user_id = request.headers["user_id"]
 
     try:
         trip = Trip(
                 name=request_body["name"], 
                 start_date=request_body["start_date"], 
-                end_date=request_body["end_date"]
+                end_date=request_body["end_date"],
+                user_id=request_header_user_id
             )
     except KeyError:
         return abort(make_response({"error": f"Trip info must include name, start_date, and end_date."}, 400))
