@@ -1,3 +1,4 @@
+from ast import Return
 from flask import Blueprint, jsonify, make_response, abort, request
 from app.models.ItineraryEntry import ItineraryEntry
 from app.models.Trip import Trip
@@ -50,7 +51,8 @@ def create_itinerary_entry_response_body(itin_entries):
                 "activity_type": entry["activity_type"],
                 "price": str(entry["price"]),
                 "location": entry["location"],
-                "notes": entry["notes"]
+                "notes": entry["notes"],
+                "id": str(entry["id"])
             }
         )
     return itinerary_entries
@@ -67,7 +69,8 @@ def to_dict_insert(entry):
         "price": entry.price,
         "location": entry.location,
         "notes": entry.notes,
-        "user_id": entry.user_id
+        "user_id": entry.user_id,
+        "id": entry.id
     }
 # def generate_set_to_update_document(field: str, changes: dict) -> dict:
 #     new_set = {}
@@ -194,31 +197,13 @@ def get_itinerary_entries_for_one_trip(trip_id):
     return jsonify(response_body), 200
 
 
-# @itinerary_entry_bp.route("/<trip_id>",methods=["GET"])
-# def get_itinerary_entries_for_one_trip(trip_id):
-#     trip_id = validate_id(trip_id)
-
-#     request_header_user_id = request.headers["user_id"]
-
-#     try:
-#         trip = db["trips"].find_one({"_id": ObjectId(trip_id), "user_id": request_header_user_id})
-#     except:
-#         return abort(make_response({"error": "Could not execute find_one method with database"}))
-    
-#     if not trip:
-#         return abort(make_response({"error": f"Trip with id {trip_id} not found."}, 404))
-    
-#     response_body = create_itinerary_entry_response_body(trip["itinerary_entries"])
-    
-#     return jsonify(response_body), 200
-
 @trip_bp.route("/<trip_id>/itinerary_entries", methods=["POST"])
 def add_itinerary_entry_to_trip(trip_id):
     trip_id = validate_id(trip_id)
 
     request_body = request.get_json()
     request_header_user_id = request.headers["user_id"]
-
+    # itinerary_entry_id = ObjectId()
     try:
         itinerary_entry = ItineraryEntry(
             name=request_body["name"], 
@@ -229,7 +214,8 @@ def add_itinerary_entry_to_trip(trip_id):
             location=request_body["location"],
             notes=request_body["notes"],
             user_id=request_header_user_id,
-            trip_id=trip_id
+            trip_id=trip_id,
+            id=ObjectId()
         )
     except KeyError:
         return abort(make_response({"error": f"Itinerary entry must include name, start_time, end_time, activity_type, price, location, and notes."}, 400))
@@ -247,39 +233,56 @@ def add_itinerary_entry_to_trip(trip_id):
     return jsonify(response_body), 201
 
 
-@itinerary_entry_bp.route("/<trip_id>", methods=["POST"])
-def add_itinerary_entry_to_trip(trip_id):
+@trip_bp.route("/<trip_id>/itinerary_entries/<itinerary_entry_id>", methods=["DELETE"])
+def delete_itinerary_entry(trip_id, itinerary_entry_id):
     trip_id = validate_id(trip_id)
-
-    request_body = request.get_json()
-    request_header_user_id = request.headers["user_id"]
+    itinerary_entry_id = validate_id(itinerary_entry_id)
 
     try:
-        itinerary_entry = ItineraryEntry(
-            name=request_body["name"], 
-            start_time=request_body["start_time"], 
-            end_time=request_body["end_time"],
-            activity_type=request_body["activity_type"],
-            price=request_body["price"],
-            location=request_body["location"],
-            notes=request_body["notes"],
-            user_id=request_header_user_id,
-            trip_id=trip_id
-        )
-    except KeyError:
-        return abort(make_response({"error": f"Itinerary entry must include name, start_time, end_time, activity_type, price, location, and notes."}, 400))
-
-    try:
-        trip = db["trips"].find_one_and_update({"_id": ObjectId(trip_id)},{"$addToSet": {"itinerary_entries": to_dict_insert(itinerary_entry)}},return_document=ReturnDocument.AFTER)
+        trip = db["trips"].find_one_and_update({"_id": ObjectId(trip_id)},
+        {"$pull": {"itinerary_entries": {"id": ObjectId(itinerary_entry_id)}}}, 
+        return_document=ReturnDocument.AFTER)
     except:
-        return abort(make_response({"error": "Could not execute find_one_and_update method with database"}), 400)
-
+        return abort(make_response({"error": f"Could not execute find_one_and_update method with database."}, 400))
+    
     if not trip:
         return abort(make_response({"error": f"Trip with id {trip_id} not found."}, 404))
     
-    response_body = create_itinerary_entry_response_body(trip["itinerary_entries"])
+    return jsonify({"message": f"Itinerary entry with id {itinerary_entry_id} successfully deleted."}), 200
 
-    return jsonify(response_body), 201
+# @itinerary_entry_bp.route("/<trip_id>", methods=["POST"])
+# def add_itinerary_entry_to_trip(trip_id):
+#     trip_id = validate_id(trip_id)
+
+#     request_body = request.get_json()
+#     request_header_user_id = request.headers["user_id"]
+
+#     try:
+#         itinerary_entry = ItineraryEntry(
+#             name=request_body["name"], 
+#             start_time=request_body["start_time"], 
+#             end_time=request_body["end_time"],
+#             activity_type=request_body["activity_type"],
+#             price=request_body["price"],
+#             location=request_body["location"],
+#             notes=request_body["notes"],
+#             user_id=request_header_user_id,
+#             trip_id=trip_id
+#         )
+#     except KeyError:
+#         return abort(make_response({"error": f"Itinerary entry must include name, start_time, end_time, activity_type, price, location, and notes."}, 400))
+
+#     try:
+#         trip = db["trips"].find_one_and_update({"_id": ObjectId(trip_id)},{"$addToSet": {"itinerary_entries": to_dict_insert(itinerary_entry)}},return_document=ReturnDocument.AFTER)
+#     except:
+#         return abort(make_response({"error": "Could not execute find_one_and_update method with database"}), 400)
+
+#     if not trip:
+#         return abort(make_response({"error": f"Trip with id {trip_id} not found."}, 404))
+    
+#     response_body = create_itinerary_entry_response_body(trip["itinerary_entries"])
+
+#     return jsonify(response_body), 201
 
 
 # @itinerary_entry_bp.route("/<trip_id>", methods=["PATCH"])
