@@ -67,7 +67,8 @@ def to_dict_insert(entry):
         "activity_type": entry.activity_type,
         "price": entry.price,
         "location": entry.location,
-        "notes": entry.notes
+        "notes": entry.notes,
+        "user_id": entry.user_id
     }
 # def generate_set_to_update_document(field: str, changes: dict) -> dict:
 #     new_set = {}
@@ -183,8 +184,10 @@ def update_trip(trip_id):
 def get_itinerary_entries_for_one_trip(trip_id):
     trip_id = validate_id(trip_id)
 
+    request_header_user_id = request.headers["user_id"]
+
     try:
-        trip = db["trips"].find_one({"_id": ObjectId(trip_id)})
+        trip = db["trips"].find_one({"_id": ObjectId(trip_id), "user_id": request_header_user_id})
     except:
         return abort(make_response({"error": "Could not execute find_one method with database"}))
     
@@ -200,6 +203,7 @@ def add_itinerary_entry_to_trip(trip_id):
     trip_id = validate_id(trip_id)
 
     request_body = request.get_json()
+    request_header_user_id = request.headers["user_id"]
 
     try:
         itinerary_entry = ItineraryEntry(
@@ -210,6 +214,7 @@ def add_itinerary_entry_to_trip(trip_id):
             price=request_body["price"],
             location=request_body["location"],
             notes=request_body["notes"],
+            user_id=request_header_user_id,
             trip_id=trip_id
         )
     except KeyError:

@@ -15,6 +15,7 @@ class ItineraryEntry(Document):
     price = IntField(min_value=0, max_value=1000000, db_field="price")
     location = StringField(required=True, max_length=75, db_field="location")
     notes = StringField(max_length=1000, db_field="notes")
+    user_id = StringField(max_length=100, db_field="user_id")
     trip_id = ReferenceField(Trip)
     # meta = {"collection": "trips", "ordering": ["-start_date"]}
     
@@ -26,7 +27,8 @@ class ItineraryEntry(Document):
             "activity_type": self.activity_type,
             "price": self.price,
             "location": self.location,
-            "notes": self.notes
+            "notes": self.notes,
+            "user_id": self.user_id
         }
     
     # def to_dict_insert(self):
