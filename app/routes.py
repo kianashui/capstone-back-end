@@ -11,13 +11,12 @@ from datetime import datetime
 # for doc in collection.find():
 #     print(doc)
 #     print(doc["_id"])
-
-# ----------------------------------BLUEPRINTS----------------------------------
+# ---------------------------------BLUEPRINTS---------------------------------
 
 trip_bp = Blueprint("trip_bp", __name__, url_prefix="/trips")
 itinerary_entry_bp = Blueprint("itinerary_entry_bp", __name__, url_prefix="/itinerary_entries")
 
-# ----------------------------------HELPER FUNCTIONS----------------------------------
+# ------------------------------HELPER FUNCTIONS------------------------------
 
 def validate_id(id):
     try:
@@ -76,15 +75,7 @@ def to_dict_insert(entry):
 #         new_set[f"{field}.$.{change}"] = changes[change]
 #     return new_set
 
-# def retrieve_object(id, Model):
-#     if Model == Trip:
-#         items = db["trips"]
-
-#     item = items.find_one({"_id": ObjectId(id)})
-
-#     return item
-
-# ----------------------------------TRIP ROUTES----------------------------------
+# ---------------------------------TRIP ROUTES---------------------------------
 @trip_bp.route("", methods=["GET"])
 def get_trips():
     request_header_user_id = request.headers["user_id"]
@@ -183,8 +174,8 @@ def update_trip(trip_id):
     return jsonify({"message": f"Trip with id {trip_id} successfully updated."}), 200
 
 
-# ----------------------------------ITINERARY ENTRY ROUTES----------------------------------
-@itinerary_entry_bp.route("/<trip_id>",methods=["GET"])
+# ----------------------------ITINERARY ENTRY ROUTES----------------------------
+@trip_bp.route("/<trip_id>/itinerary_entries",methods=["GET"])
 def get_itinerary_entries_for_one_trip(trip_id):
     trip_id = validate_id(trip_id)
 
@@ -201,6 +192,60 @@ def get_itinerary_entries_for_one_trip(trip_id):
     response_body = create_itinerary_entry_response_body(trip["itinerary_entries"])
     
     return jsonify(response_body), 200
+
+
+# @itinerary_entry_bp.route("/<trip_id>",methods=["GET"])
+# def get_itinerary_entries_for_one_trip(trip_id):
+#     trip_id = validate_id(trip_id)
+
+#     request_header_user_id = request.headers["user_id"]
+
+#     try:
+#         trip = db["trips"].find_one({"_id": ObjectId(trip_id), "user_id": request_header_user_id})
+#     except:
+#         return abort(make_response({"error": "Could not execute find_one method with database"}))
+    
+#     if not trip:
+#         return abort(make_response({"error": f"Trip with id {trip_id} not found."}, 404))
+    
+#     response_body = create_itinerary_entry_response_body(trip["itinerary_entries"])
+    
+#     return jsonify(response_body), 200
+
+@trip_bp.route("/<trip_id>/itinerary_entries", methods=["POST"])
+def add_itinerary_entry_to_trip(trip_id):
+    trip_id = validate_id(trip_id)
+
+    request_body = request.get_json()
+    request_header_user_id = request.headers["user_id"]
+
+    try:
+        itinerary_entry = ItineraryEntry(
+            name=request_body["name"], 
+            start_time=request_body["start_time"], 
+            end_time=request_body["end_time"],
+            activity_type=request_body["activity_type"],
+            price=request_body["price"],
+            location=request_body["location"],
+            notes=request_body["notes"],
+            user_id=request_header_user_id,
+            trip_id=trip_id
+        )
+    except KeyError:
+        return abort(make_response({"error": f"Itinerary entry must include name, start_time, end_time, activity_type, price, location, and notes."}, 400))
+
+    try:
+        trip = db["trips"].find_one_and_update({"_id": ObjectId(trip_id)},{"$addToSet": {"itinerary_entries": to_dict_insert(itinerary_entry)}},return_document=ReturnDocument.AFTER)
+    except:
+        return abort(make_response({"error": "Could not execute find_one_and_update method with database"}), 400)
+
+    if not trip:
+        return abort(make_response({"error": f"Trip with id {trip_id} not found."}, 404))
+    
+    response_body = create_itinerary_entry_response_body(trip["itinerary_entries"])
+
+    return jsonify(response_body), 201
+
 
 @itinerary_entry_bp.route("/<trip_id>", methods=["POST"])
 def add_itinerary_entry_to_trip(trip_id):

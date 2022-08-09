@@ -31,20 +31,6 @@ class ItineraryEntry(Document):
             "user_id": self.user_id
         }
     
-    # def to_dict_insert(self):
-    #     self.start_time = datetime.datetime.fromisoformat(self.start_time)
-    #     self.end_time = datetime.datetime.fromisoformat(self.end_time)
-
-    #     return {
-    #         "name": self.name,
-    #         "start_time": self.start_time,
-    #         "end_time": self.end_time,
-    #         "activity_type": self.activity_type,
-    #         "price": str(self.price),
-    #         "location": self.location,
-    #         "notes": self.notes
-    #     }
-    
     def to_dict_with_object_id(self):
         return {
             "_id": str(self["_id"]),
