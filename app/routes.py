@@ -1,4 +1,3 @@
-from ast import Return
 from flask import Blueprint, jsonify, make_response, abort, request
 from app.models.ItineraryEntry import ItineraryEntry
 from app.models.Trip import Trip
@@ -231,6 +230,27 @@ def add_itinerary_entry_to_trip(trip_id):
     response_body = create_itinerary_entry_response_body(trip["itinerary_entries"])
 
     return jsonify(response_body), 201
+
+
+# @trip_bp.route("/<trip_id>/itinerary_entries/<itinerary_entry_id>", methods=["PATCH"])
+# def update_itinerary_entry(trip_id, itinerary_entry_id):
+#     trip_id = validate_id(trip_id)
+#     itinerary_entry_id = validate_id(itinerary_entry_id)
+#     field_to_update = ""
+#     new_update = ""
+
+#     try:
+#         trip = db["trips"].find_one_and_update({"_id": ObjectId(trip_id)},
+#         {"$set": {"itinerary_entries": {"id": ObjectId(itinerary_entry_id)}}}, 
+#         {"$set": {"trips.itinerary_entries.$.{field_to_update}": {new_update}}}
+#         return_document=ReturnDocument.AFTER)
+#     except:
+#         return abort(make_response({"error": f"Could not execute find_one_and_update method with database."}, 400))
+    
+#     if not trip:
+#         return abort(make_response({"error": f"Trip with id {trip_id} not found."}, 404))
+    
+#     return jsonify({"message": f"Itinerary entry with id {itinerary_entry_id} successfully deleted."}), 200
 
 
 @trip_bp.route("/<trip_id>/itinerary_entries/<itinerary_entry_id>", methods=["DELETE"])
