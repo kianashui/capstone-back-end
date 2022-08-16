@@ -16,7 +16,9 @@ class ItineraryEntry(Document):
     location = StringField(required=True, max_length=75, db_field="location")
     notes = StringField(max_length=1000, db_field="notes")
     user_id = StringField(max_length=100, db_field="user_id")
-    trip_id = ReferenceField(Trip)
+    trip_id = ObjectIdField(required=True)
+    # trip_id = ReferenceField(Trip)
+    meta = {"ordering": ["-start_time"]}
     # meta = {"collection": "trips", "ordering": ["-start_date"]}
     
     def to_dict_insert(self):
